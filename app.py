@@ -25,3 +25,14 @@ spread = data['Close']['CCJ'] - beta * data['Close']['UEC']
 
 print(f"\nBeta: {beta}")
 print(f"\nSpread:\n{spread}")
+
+window = 20
+mean = spread.rolling(window).mean()
+std = spread.rolling(window).std()
+z = (spread - mean) / std
+
+# signals
+long_signal = z < -2
+short_signal = z > 2
+exit_signal = z.abs() < 0.5
+stop_loss = z.abs() > 4
