@@ -7,6 +7,9 @@ import numpy as np
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt"""
 
+from scipy.stats import zscore
+
+
 def run_tests():
     import yfinance as yf
     import numpy as np
@@ -144,6 +147,29 @@ def run_tests():
     plt.xlabel('Date')
     plt.ylabel('Spread')
     plt.legend(loc='best')
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+    print("Now calculating signals...")
+
+    z_score = (spread - spread.rolling(window=window).mean()) / spread.rolling(window=window).std()    
+    signals = pd.DataFrame({
+        'CCJ': ccj_prices,
+        'UEC': uec_prices,
+        'Spread': spread,
+        'Z-Score': z_score,
+    })
+    print(signals.tail())
+
+    print("Visualising Z-Score Vs Spread...")
+    plt.figure(figsize=(12, 6))
+    plt.plot(signals['Z-Score'], label='Z-Score')
+    plt.axhline(0, color='black', linestyle='--')
+    plt.axhline(2, color='red', linestyle='--')
+    plt.axhline(-2, color='green', linestyle='--')
+    plt.title('Z-Score of CCJ vs UEC Spread')
+    plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
