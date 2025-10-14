@@ -6,6 +6,7 @@ from statsmodels.tsa.stattools import coint
 import os
 import yfinance as yf
 import matplotlib.pyplot as plt
+from matplotlib.ticker import PercentFormatter
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -71,25 +72,29 @@ def main():
     signals['Exit_Flag'] = 0
 
     pos = 0
-    for i in range(len(signals)):
-        idx = signals.index[i]
-        if entry_short.iloc[i]:
-            # close previous, if any, then open short A, long B
-            pos = -1
-            signals.loc[idx, 'Entry_Flag'] = -1
-        elif entry_long.iloc[i]:
-            # close previous, if any, then open long A, short B
-            pos = 1
-            signals.loc[idx, 'Entry_Flag'] = 1
-        elif exit_cross.iloc[i] or extreme_stop.iloc[i] or exit_on_sign_change.iloc[i]:
-            # if cross, exit, or sign change, then close position
-            if pos != 0:
-                signals.loc[idx, 'Exit_Flag'] = pos
-            pos = 0
+    position_size = 0.1  # 10% of capital per leg
 
-        # set position columns
-        signals.loc[idx, 'Position_A'] = pos
-        signals.loc[idx, 'Position_B'] = -pos
+    for i in range(len(signals)):
+        signals['Position_A'] = signals['Position_A'].astype(float)
+        signals['Position_B'] = signals['Position_B'].astype(float)
+        idx = signals.index[i]
+        
+        if pos == 0:
+            if entry_short.iloc[i]:
+                pos = -1
+                signals.loc[idx, 'Entry_Flag'] = -1
+            elif entry_long.iloc[i]:
+                pos = 1
+                signals.loc[idx, 'Entry_Flag'] = 1
+        
+        if pos != 0:
+            if exit_cross.iloc[i] or extreme_stop.iloc[i] or exit_on_sign_change.iloc[i]:
+                signals.loc[idx, 'Exit_Flag'] = pos
+                pos = 0
+
+        # SIMPLIFIED: Equal dollar amounts, opposite directions
+        signals.loc[idx, 'Position_A'] = pos * position_size
+        signals.loc[idx, 'Position_B'] = -pos * position_size  # Same size, opposite sign
 
     # filter rows to get entries where entry flag is hold
     # then get z score at entry and it's flag
@@ -127,6 +132,9 @@ def main():
     plt.figure(figsize=(12,6))
     plt.plot(df['cumu_net_ret'], label='Cumulative Strategy Return')
     plt.title('Pair Trading Strategy Backtest')
+    plt.xlabel('Date')
+    plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+    plt.ylabel('Cumulative Return (%)')
     plt.legend()
     plt.show()
 
@@ -164,12 +172,11 @@ def main():
             exit_price_B = price_B
             
             if current_pos == 1:
-                # Long A, short B
-                trade_return = (exit_price_A / entry_price_A - 1) - (exit_price_B / entry_price_B - 1)
+                # Long A, short B - equal dollar amounts
+                trade_return = position_size * ((exit_price_A / entry_price_A - 1) - (exit_price_B / entry_price_B - 1))
             elif current_pos == -1:
                 # Short A, long B
-                trade_return = (entry_price_A / exit_price_A - 1) - (entry_price_B / exit_price_B - 1)
-
+                trade_return = position_size * ((entry_price_A / exit_price_A - 1) - (entry_price_B / exit_price_B - 1))
             holding_period = (exit_idx - entry_idx).days
             trades.append((entry_idx, exit_idx, current_pos, trade_return, holding_period))
             current_pos = 0
@@ -194,3 +201,12 @@ def main():
     print("Min net_ret:", df['net_ret'].min())
     print("Count days with net_ret <= -1:", (df['net_ret'] <= -1).sum())
     print("Min (1+net_ret):", (1 + df['net_ret']).min())
+
+    # Find the worst day
+    worst_day = df['net_ret'].idxmin()
+    print(f"\nWorst Day: {worst_day}")
+    print(f"Position A: {df.loc[worst_day, 'Position_A']}")
+    print(f"Position B: {df.loc[worst_day, 'Position_B']}")
+    print(f"Return A: {df.loc[worst_day, 'ret_A']:.2%}")
+    print(f"Return B: {df.loc[worst_day, 'ret_B']:.2%}")
+    print(f"Net Return: {df.loc[worst_day, 'net_ret']:.2%}")
