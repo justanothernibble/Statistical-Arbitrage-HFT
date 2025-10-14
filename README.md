@@ -24,7 +24,7 @@ the model first tests for cointegration between CCJ and UEC using the Engle-Gran
 
 if the null hypothesis is rejected (p-value < 0.05), indicating a long-term relationship, it proceeds with OLS regression on log-transformed prices: log(CCJ) = α + β * log(UEC). 
 
-The error correction term (spread) is then the residuals: spread_t = log(CCJ_t) - (α + β * log(UEC_t)). 
+spread calcualted as the residuals: spread_t = log(CCJ_t) - (α + β * log(UEC_t)). 
 
 To normalize, a z-score is calculated as z_t = (spread_t - μ_rolling) / σ_rolling, using a 60-day rolling window for mean (μ) and standard deviation (σ). 
 
