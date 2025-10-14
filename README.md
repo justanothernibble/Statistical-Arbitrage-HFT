@@ -11,46 +11,46 @@ if you want to test it, clone the repo then run app.py. you can change the stock
 ## how it works
 ill explain how it works now.
 
-### quick diagram
-+-------------------------------+
-|      Statistical Model        |
-| (Cointegration, Spread, Z)    |
-+-------------------------------+
-               ↓
-+-------------------------------+
-|      Signal Generation        |
-| (Crosses, Entry/Exit flags)   |
-+-------------------------------+
-               ↓
-+-------------------------------+
-|     Position Management       |
-| (Long/Short state machine)    |
-+-------------------------------+
-               ↓
-+-------------------------------+
-|      Risk Management          |
-| (Stops, sizing, limits)       |
-+-------------------------------+
-               ↓
-+-------------------------------+
-|   Performance Tracking        |
-| (Sharpe, drawdown, win rate)  |
-+-------------------------------+
+```mermaid
+flowchart TD
+    A[Statistical Model<br/>Cointegration, Spread, Z] --> B[Signal Generation<br/>Crosses, Entry/Exit flags]
+    B --> C[Position Management<br/>Long/Short state machine]
+    C --> D[Risk Management<br/>Stops, sizing, limits]
+    D --> E[Performance Tracking<br/>Sharpe, drawdown, win rate]
+```
 
 ### statistical model
-the model uses cointegration to find the relationship between the two stocks. it then uses the spread to find the z score of the spread. the z score is then used to generate signals.
+the model first tests for cointegration between CCJ and UEC using the Engle-Granger test (statsmodels library). 
+
+if the null hypothesis is rejected (p-value < 0.05), indicating a long-term relationship, it proceeds with OLS regression on log-transformed prices: log(CCJ) = α + β * log(UEC). 
+
+The error correction term (spread) is then the residuals: spread_t = log(CCJ_t) - (α + β * log(UEC_t)). 
+
+To normalize, a z-score is calculated as z_t = (spread_t - μ_rolling) / σ_rolling, using a 60-day rolling window for mean (μ) and standard deviation (σ). 
+
+the z-score represents deviations from the equilibrium in standard deviations.
 
 ### signal generation
-the model uses crosses to generate signals. it uses a rolling window to calculate the z score. it then uses the z score to generate signals. the signals are then used to generate trades.
+entry signals are cross-based thresholds on the z-score. long spread (bet CCJ will outperform UEC: long CCJ, short UEC) when z crosses below -2 (from above -2). short spread (bet UEC will outperform CCJ: short CCJ, long UEC) when z crosses above +2 (from below +2). exit conditions: when |z| drops below 0.5 from above, or |z| > 4 (extreme deviation stop), or z changes sign from entry threshold to opposite (e.g., entered long at z=-2, exit if z > 0). these flags generate entry/exit events for trades.
 
 ### position management
-the model uses a long/short state machine to manage positions. it uses a simple position sizing method to size positions. it then uses the position sizing method to generate trades.
+positions use a simple state machine: flat (0), long spread (+1), or short spread (-1). on entry, position size is fixed at 10% of capital per leg (e.g., 0.1 for each stock). long/short are equal-dollar positions in opposite directions to maintain market neutrality. transactions occur only on entry/exit flags.
 
 ### risk management
-the model uses a simple risk management method to manage risk. it uses a simple position sizing method to size positions. it then uses the position sizing method to generate trades.
+risk is managed via fixed position sizing (0.1 per leg, or 20% total exposure), assuming no leverage. transaction costs are deducted at 0.05% per trade per leg (modeled as 0.0005 multiplier). no advanced stops beyond the z-score thresholds, relying on statistical mean-reversion.
 
 ### performance tracking
-the model uses a simple performance tracking method to track performance. it uses a simple position sizing method to size positions. it then uses the position sizing method to generate trades.
+backtest calculates key metrics: 
+
+- Sharpe ratio (annualized: mean daily return / std dev * sqrt(252))
+- total return (cumulative product of daily returns)
+- max drawdown (peak-to-trough decline)
+- win rate (% of profitable trades)
+- average holding period
+- average win/loss
+- expectancy (mean trade return)
+
+uses pandas pct_change for daily returns, cumprod for cumulative.
 
 ## results
 
