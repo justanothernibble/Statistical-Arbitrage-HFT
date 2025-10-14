@@ -1,4 +1,5 @@
 import config
+import signals
 
 def main():
     print("Press enter to skip tests. Press any other key to run tests.")
@@ -10,7 +11,9 @@ def main():
         tests.run_tests()
         config.tested = True
     
-    config.importLibs(config.tested)
+    print("Now processing signals.")
+        
+    signals.main()
     
 if __name__ == "__main__":
     main()
