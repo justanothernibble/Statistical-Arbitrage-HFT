@@ -128,12 +128,12 @@ def run_tests():
     # Plots a horizontal line at the mean of the spread, with colour red and line width 1
     plt.plot(spread.index, spread_rolling_mean, color='red', linestyle='--', label=f'{window}-Day Rolling Mean', linewidth=1)
     # Plots horizontal lines at the mean plus and minus 2 standard deviations of the spread, with colour orange and line width 1
-    plt.plot(spread.index, spread_rolling_mean + 2*spread_rolling_std,
-            color='orange', linestyle=':', label=f'{window}-Day +2 Std Dev', linewidth=1)
-    plt.plot(spread.index, spread_rolling_mean - 2*spread_rolling_std,
-            color='orange', linestyle=':', label=f'{window}-Day -2 Std Dev', linewidth=1)
+    plt.plot(spread.index, spread_rolling_mean + Z_SCORE_ENTRY_THRESHOLD*spread_rolling_std,
+            color='orange', linestyle=':', label=f'{window}-Day +{Z_SCORE_ENTRY_THRESHOLD} Std Dev', linewidth=1)
+    plt.plot(spread.index, spread_rolling_mean - Z_SCORE_ENTRY_THRESHOLD*spread_rolling_std,
+            color='orange', linestyle=':', label=f'{window}-Day -{Z_SCORE_ENTRY_THRESHOLD} Std Dev', linewidth=1)
 
-    plt.title(f'Spread: {TICKER_1} - {TICKER_2} (with Rolling Mean and ±2 Std Dev)')
+    plt.title(f'Spread: {TICKER_1} - {TICKER_2} (with Rolling Mean and ±{Z_SCORE_ENTRY_THRESHOLD} Std Dev)')
     plt.xlabel('Date')
     plt.ylabel('Spread')
     plt.legend(loc='best')

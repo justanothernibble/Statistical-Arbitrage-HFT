@@ -59,11 +59,11 @@ def main():
     exit = Z_SCORE_EXIT_THRESHOLD
 
     z = signals['Z-Score']
-    entry_short = (z.shift(1) <=  2) & (z >  2)   # cross above +2 -> short spread
-    entry_long  = (z.shift(1) >= -2) & (z < -2)   # cross below -2 -> long spread
+    entry_short = (z.shift(1) <=  entry) & (z >  entry)   # cross above +2 -> short spread
+    entry_long  = (z.shift(1) >= -entry) & (z < -entry)   # cross below -2 -> long spread
     exit_cross  = (z.shift(1).abs() >= 0.5) & (z.abs() < 0.5)
-    extreme_stop = (z.abs() > 4)
-    exit_on_sign_change = ((z.shift(1) > 2) & (z < 0)) | ((z.shift(1) < -2) & (z > 0))
+    extreme_stop = (z.abs() > EXTREME_STOP)
+    exit_on_sign_change = ((z.shift(1) > entry) & (z < 0)) | ((z.shift(1) < -entry) & (z > 0))
 
     # Create position columns
     signals['Position_A'] = 0
@@ -105,8 +105,8 @@ def main():
     plt.figure(figsize=(12,6))
     plt.plot(signals['Z-Score'], label='Z-Score')
     plt.axhline(0, color='black', linestyle='--')
-    plt.axhline(2, color='red', linestyle='--')
-    plt.axhline(-2, color='green', linestyle='--')
+    plt.axhline(entry, color='red', linestyle='--')
+    plt.axhline(-entry, color='green', linestyle='--')
     plt.scatter(signals.index[signals['Entry_Flag']==1], signals['Z-Score'][signals['Entry_Flag']==1], marker='^', color='green', label='Long Entry')
     plt.scatter(signals.index[signals['Entry_Flag']==-1], signals['Z-Score'][signals['Entry_Flag']==-1], marker='v', color='red', label='Short Entry')
     plt.legend()
