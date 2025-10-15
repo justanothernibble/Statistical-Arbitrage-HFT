@@ -1,0 +1,197 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Main App",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/app.py"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Backtest (Default CCJ/UEC)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/backtest_interface.py"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Backtest (Custom Parameters)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-c",
+                "from backtest_interface import run_backtest; run_backtest('${input:ticker_a}', '${input:ticker_b}', start_date='${input:start_date}', end_date='${input:end_date}', entry_threshold=${input:entry_threshold})"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Original Signals",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/signals.py"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Tests",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tests.py"
+            ],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test Different Pairs (GLD/SLV)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-c",
+                "from backtest_interface import run_backtest; run_backtest('GLD', 'SLV', start_date='2015-01-01', end_date='2025-01-01')"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Test Different Pairs (XOM/CVX)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-c",
+                "from backtest_interface import run_backtest; run_backtest('XOM', 'CVX', start_date='2015-01-01', end_date='2025-01-01')"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compare Multiple Parameters",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-c",
+                "from backtest_interface import run_backtest; import itertools; params = {'rolling_window': [30, 60, 90], 'entry_threshold': [1.5, 2.0, 2.5]}; [run_backtest('CCJ', 'UEC', rolling_window=w, entry_threshold=e, show_plots=False) for w, e in itertools.product(params['rolling_window'], params['entry_threshold'])]; print('Parameter comparison complete!')"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean Cache Files",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-c",
+                "import os; import glob; files = glob.glob('*_data.csv'); [os.remove(f) for f in files]; print(f'Removed {len(files)} cache files')"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Open Backtest Results Folder",
+            "type": "shell",
+            "command": "explorer",
+            "args": [
+                "${workspaceFolder}\\backtest_results_CCJ_UEC"
+            ],
+            "windows": {
+                "command": "explorer",
+                "args": [
+                    "${workspaceFolder}\\backtest_results_CCJ_UEC"
+                ]
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "ticker_a",
+            "type": "promptString",
+            "description": "Enter first ticker symbol",
+            "default": "CCJ"
+        },
+        {
+            "id": "ticker_b",
+            "type": "promptString",
+            "description": "Enter second ticker symbol",
+            "default": "UEC"
+        },
+        {
+            "id": "start_date",
+            "type": "promptString",
+            "description": "Enter start date (YYYY-MM-DD)",
+            "default": "2010-01-01"
+        },
+        {
+            "id": "end_date",
+            "type": "promptString",
+            "description": "Enter end date (YYYY-MM-DD)",
+            "default": "2025-01-01"
+        },
+        {
+            "id": "entry_threshold",
+            "type": "promptString",
+            "description": "Enter Z-score entry threshold",
+            "default": "2.0"
+        }
+    ]
+}
